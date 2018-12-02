@@ -1,25 +1,31 @@
-#include "DxLib.h"
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <sstream>
 
+#include "DxLib.h"
 
-int main()
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-	// ---------------------------------------------------------------------
-	// ＤＸライブラリの初期化
-	if (DxLib_Init() < 0)
+	ChangeWindowMode(true);
+
+	if (DxLib_Init() == -1)		// ＤＸライブラリ初期化処理
 	{
-		// エラーが発生したら直ちに終了
+		return -1;			// エラーが起きたら直ちに終了
+	}
+	if (__argc == 1)
+	{
+		DrawFormatString(0, 0, GetColor(255, 255, 255), "exeにpmd/mqo/pmx/mqx/mv1をドラッグアンドドロップしてください。\n何かキーを押してください。");
+
+		WaitKey();
+
 		return -1;
 	}
 
-	ChangeWindowMode(true);
-
 
 	// ---------------------------------------------------------------------
-	int modelHandle = MV1LoadModel("media\\CLPH_\\CLPH.mv1");
+	int modelHandle = MV1LoadModel(__argv[1]);
 
 	const int textureNum = MV1GetTextureNum(modelHandle);
 
@@ -29,27 +35,28 @@ int main()
 	saveFile.open("Save.csv");		// ファイルオープン
 
 	// ファイル読み込み失敗
-	if (saveFile.fail()) 
+	if (saveFile.fail())
 	{
 		printf("SaveError\n");
 	}
-	else 
+	else
 	{
 		// 読み込み成功
 		saveFile << "ID" << "," << "名前" << "\n";
-		for (int i = 0; i < textureNum; i++) 
+		for (int i = 0; i < textureNum; i++)
 		{
-			saveFile << i << "," << MV1GetTextureColorFilePath(modelHandle, i) << "\n";
+			saveFile << i << "," << MV1GetTextureColorFilePath(modelHandle, i) << std::endl;
 		}
 	}
 
 	// ファイルを閉じる
 	saveFile.close();
 
+	DrawFormatString(0, 0, GetColor(255,255,255), "ファイル読み込み及びcsv書き出し終了しました\n何かキーを押してください。");
 
-	// ---------------------------------------------------------------------
-	// int MV1SetTextureColorFilePath( int MHandle, int TexIndex, const TCHAR *FilePath ) ;// カラーテクスチャのファイルパスを変更する
-	// これ使って変更すればいい
+	WaitKey();
 
-	return 0;
+	DxLib_End();				// ＤＸライブラリ使用の終了処理
+
+	return 0;				// ソフトの終了 
 }
